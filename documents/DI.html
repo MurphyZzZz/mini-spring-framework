@@ -1,0 +1,49 @@
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+</head>
+<body>
+<p class="example">
+    FirenzeContainer是一款轻量级依赖注入框架，能够自动创建和销毁实例并限制其生命周期。<br/>
+    <br/>
+    1. 定义一个可管理的Bean。<br/>
+    使用
+    <span class="variable" data-name="managed-bean">@Controller/@Service/@Repository/@Bean</span>
+    来标示这是一个可被container管理的Bean。<br/>
+    <br/>
+    2. 注入一个可管理的Bean。<br/>
+    被注入的Bean和依赖方都必须是可管理的Bean。
+    在此，使用
+    <span class="variable" data-name="injecting-point">@Autowired</span>
+    来定义一个注入点。<br/>
+    <br/>
+    3. Bean的周期事件。<br/>
+    <span class="variable" data-name="lifecycle-event">@PostConstruct</span>
+    标记的方法会被执行，当Bean需要的所有依赖注入完成后。<br/>
+    <span class="variable" data-name="lifecycle-event">@PreDestroy</span>
+    标记的方法会被执行，当这个Bean的Scope被回收后。<br/>
+    <br/>
+    4. Bean的生命周期。<br/>
+    提供以下生命周期：Prototype、Request、Session、Singleton（默认）<br/>
+    <span class="variable" data-name="bean-scope">@Scope</span>
+    可用来设置一个Bean的生命周期。<br/>
+    不同生命周期的两个Beans，也允许注入。比如：AClass的生命周期是Singleton，需要注入BClass，但是BClass的生命周期是Request。<br/>
+    <br/>
+    5. 可替换的Bean注入。<br/>
+    <span class="variable" data-name="alternative">@Primary</span>
+    注解标记这是Bean注入的备选方。<br/>
+    比如：
+    当我们有ServiceAClass和ServiceBClass同时实现了ServiceClass这个接口，RestaurantClass需要注入一个ServiceClass的时候，当
+    我们在ServiceAClass上加上@Primary的时候，这个时候Container会把ServiceBClass注入到RestaurantClass中。<br/>
+    <br/>
+    6.自定义Bean的创建。<br/>
+    当Container创建一个Bean的时候，默认情况下，会使用Object中不带参数的构造函数。所以，如果想要使用带有参数的构造函数，
+    可以使用
+    <span class="variable" data-name="custom-bean">@Configuration</span>
+    和
+    <span class="variable" data-name="custom-bean">@Bean</span>。<br/>
+    注意：使用@Bean时，需要使用@Scope来指定其生命周期。<br/>
+
+</p>
+</body>
+</html>
