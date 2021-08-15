@@ -4,19 +4,103 @@
 </head>
 <body>
 <p class="example">
-    FirenzeContainer是一款轻量级依赖注入框架，能够自动创建和销毁实例并限制其生命周期。<br/>
+    Mini-Spring-Framework是一款轻量级依赖注入框架，能够自动创建、管理和销毁实例并限制其生命周期。<br/>
+    在介绍具体用法之前，有几个概念需要理解：<br/>
+    1. Bean - 被容器管理的对象就叫做Bean<br/>
+    2. Container - ApplicationContext 接口代表一个container。 容器负责实例化、配置和组装称为 bean 的对象，以及管理它们的生命周期。<br/>
     <br/>
+    使用说明：<br/>
+    <br/>
+    - 阶段1
+    <br/>
+    1. 构造函数注入
+    容器将调用带有参数的构造函数，每个参数代表我们要设置的依赖项。同时，需要把交给容器管理的Bean加入到容器中。
+<pre><code class="language-java">
+public interface Peelable {
+  void peel();
+}
+public class Apple implements Peelable {
+  public void peel() { }
+}
+public class Peeler implements Startable {
+  private final Peelable peelable;
+  public Peeler(Peelable peelable) {
+    this.peelable = peelable;
+  }
+  public void start() {
+	peelable.peel();
+  }
+  public void stop() { }
+}
+public class Juicer {
+  private final Peelable peelable;
+  private final Peeler peeler;
+  public Juicer(Peelable peelable, Peeler peeler) {
+    this.peelable = peelable;
+    this.peeler = peeler;
+  }
+}
+</code></pre>
+
+
+2. 组装Bean到Container中
+<pre><code class="language-java">
+MutablePicoContainer pico = new DefaultPicoContainer();
+pico.addComponent(Apple.class);
+pico.addComponent(Juicer.class);
+pico.addComponent(Peeler.class);
+</code></pre>
+
+
+
+3. 实例化组件
+从容器中取出实例化的组件。
+<pre><code class="language-java">
+Juicer juicer = (Juicer) pico.getComponent(Juicer.class);
+</code></pre>
+
+- 阶段2<br/>
+
     1. 定义一个可管理的Bean。<br/>
     使用
-    <span class="variable" data-name="managed-bean">@Controller/@Service/@Repository/@Bean</span>
-    来标示这是一个可被container管理的Bean。<br/>
+    <span class="variable" data-name="managed-bean">@Controller/@Service/@Repository/@Component/@Bean</span>
+    来标示这是一个可被容器管理的Bean。<br/>
+<pre><code class="language-java">
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public Item item1() {
+        return new ItemImpl1();
+    }
+
+    @Bean
+    public Store store() {
+        return new Store(item1());
+    }
+}
+</code></pre>
+这里我们使用注解来通知 Spring 运行时这个类提供了 bean 定义（@Bean 注解），并且需要为额外的 bean 执行上下文扫描。 接下来，我们定义一个 Car 类：
+<pre><code class="language-java">
+@Component
+public class Car {
+
+    @Autowired
+    public Car(Engine engine, Transmission transmission) {
+        this.engine = engine;
+        this.transmission = transmission;
+    }
+}
+</code></pre>
+Spring 将在执行包扫描时遇到我们的 Car 类，并将通过调用 @Autowired 带注释的构造函数来初始化其实例。
+
+通过调用Config类的@Bean注解方法，我们将获得Engine和Transmission的实例。 最后，我们需要使用我们的 POJO 配置来引导一个 ApplicationContext：
+<pre><code class="language-java">
+ApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
+Car car = context.getBean(Car.class);
+</code></pre>
     <br/>
-    2. 注入一个可管理的Bean。<br/>
-    被注入的Bean和依赖方都必须是可管理的Bean。
-    在此，使用
-    <span class="variable" data-name="injecting-point">@Autowired</span>
-    来定义一个注入点。<br/>
-    <br/>
+
     3. Bean的周期事件。<br/>
     <span class="variable" data-name="lifecycle-event">@PostConstruct</span>
     标记的方法会被执行，当Bean需要的所有依赖注入完成后。<br/>
