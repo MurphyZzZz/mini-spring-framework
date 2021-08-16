@@ -116,9 +116,36 @@ Car car = context.getBean(Car.class);
     5. 可替换的Bean注入。<br/>
     <span class="variable" data-name="alternative">@Primary</span>
     注解标记这是Bean注入的备选方。<br/>
-    比如：
-    当我们有ServiceAClass和ServiceBClass同时实现了ServiceClass这个接口，RestaurantClass需要注入一个ServiceClass的时候，当
-    我们在ServiceAClass上加上@Primary的时候，这个时候Container会把ServiceBClass注入到RestaurantClass中。<br/>
+<pre><code class="language-java">
+@Configuration
+public class Config {
+
+    @Bean
+    public Employee JohnEmployee() {
+        return new Employee("John");
+    }
+
+    @Bean
+    @Primary
+    public Employee TonyEmployee() {
+        return new Employee("Tony");
+    }
+}
+</code></pre>
+我们用@Primary 标记TonyEmployee() bean。 Spring 将优先注入 TonyEmployee() bean，而不是 JohnEmployee()。
+
+现在，让我们启动应用程序上下文并从中获取 Employee bean：
+<pre><code class="language-java">
+AnnotationConfigApplicationContext context
+  = new AnnotationConfigApplicationContext(Config.class);
+
+Employee employee = context.getBean(Employee.class);
+System.out.println(employee);
+</code></pre>
+在我们运行应用程序之后，我们会看到：
+<pre><code class="language-java">
+Employee{name='Tony'}
+</code></pre>
     <br/>
     6.自定义Bean的创建。<br/>
     当Container创建一个Bean的时候，默认情况下，会使用Object中不带参数的构造函数。所以，如果想要使用带有参数的构造函数，
@@ -126,8 +153,5 @@ Car car = context.getBean(Car.class);
     <span class="variable" data-name="custom-bean">@Configuration</span>
     和
     <span class="variable" data-name="custom-bean">@Bean</span>。<br/>
-    注意：使用@Bean时，需要使用@Scope来指定其生命周期。<br/>
-
-</p>
 </body>
 </html>
