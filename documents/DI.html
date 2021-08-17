@@ -106,12 +106,102 @@ Car car = context.getBean(Car.class);
     标记的方法会被执行，当Bean需要的所有依赖注入完成后。<br/>
     <span class="variable" data-name="lifecycle-event">@PreDestroy</span>
     标记的方法会被执行，当这个Bean的Scope被回收后。<br/>
+<pre><code class="language-java">
+
+定义一个bean：
+public class MyBean {
+
+	public MyBean() {
+		System.out.println("MyBean instance created");
+	}
+
+	@PostConstruct
+	private void init() {
+		System.out.println("Verifying Resources");
+	}
+
+	@PreDestroy
+	private void shutdown() {
+		System.out.println("Shutdown All Resources");
+	}
+
+	public void close() {
+		System.out.println("Closing All Resources");
+	}
+}
+
+定义一个configuration：
+@Configuration
+public class MyConfiguration {
+
+    @Bean
+    @Scope(value="singleton")
+    public MyBean myBean() {
+	return new MyBean();
+    }
+
+}
+
+启动程序：
+public class MySpringApp {
+
+	public static void main(String[] args) {
+		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+		ctx.register(MyConfiguration.class);
+		ctx.refresh();
+
+		MyBean mb1 = ctx.getBean(MyBean.class);
+		System.out.println(mb1.hashCode());
+
+		MyBean mb2 = ctx.getBean(MyBean.class);
+		System.out.println(mb2.hashCode());
+
+		ctx.close();
+	}
+
+}
+我们会看到如下结果：
+MyBean instance created
+Verifying Resources
+1640296160
+1640296160
+Shutdown All Resources
+Closing All Resources
+</code></pre>
     <br/>
     4. Bean的生命周期。<br/>
     提供以下生命周期：Prototype、Request、Session、Singleton（默认）<br/>
     <span class="variable" data-name="bean-scope">@Scope</span>
     可用来设置一个Bean的生命周期。<br/>
     不同生命周期的两个Beans，也允许注入。比如：AClass的生命周期是Singleton，需要注入BClass，但是BClass的生命周期是Request。<br/>
+<pre><code class="language-java">
+定义一个多例Bean
+
+@Component
+@Scope("prototype")
+public class PrototypeBean {
+    public void say() {
+        System.out.println("This is a prototype bean...");
+    }
+}
+
+把多例bean注入到单例bean中，
+
+@Component
+public class SingletonBean {
+
+    public void print() {
+
+        PrototypeBean bean = methodInject();
+        System.out.println("Prototype bean is injected to singleton bean, its HashCode " + bean.hashCode());
+    }
+
+    @Lookup
+    public PrototypeBean methodInject() {
+        return null;
+    }
+}
+</code></pre>
     <br/>
     5. 可替换的Bean注入。<br/>
     <span class="variable" data-name="alternative">@Primary</span>
