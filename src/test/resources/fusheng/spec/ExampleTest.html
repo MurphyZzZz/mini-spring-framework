@@ -1,0 +1,28 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+</head>
+<body>
+<p class="example">
+    现在有玩家
+    A,B,C
+<!--    <span class="function" data-action="newGame" data-params="players"></span>，-->
+    参与游戏
+    <span class="function" data-action="setMinWager" data-params="minWager">
+      最小下注金额为<span class="variable" data-name="minWager">3</span>
+    </span>，
+    底池金额为
+    <span class="assertion" data-expect="equal" data-action="getPot">0</span>，
+    首先玩家 A
+    <span class="function" data-action="bet">下注</span>，
+    然后玩家 B
+    <span class="function" data-action="bet">跟注</span>，
+    最后玩家 C
+    <span class="function" data-action="raise" data-params="wager">加注
+      <span class="variable" data-name="wager">5</span>
+    </span>，
+    此时底池金额为
+    <span class="assertion" data-expect="equal" data-action="getPot">11</span>。
+</p>
+</body>
+</html>
