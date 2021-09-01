@@ -3,7 +3,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 </head>
 <body>
-<p class="example">
+<div class="example">
     Mini-Spring-Framework是一款轻量级依赖注入框架，能够自动创建、管理和销毁实例并限制其生命周期。<br/>
     在介绍具体用法之前，有几个概念需要理解：<br/>
     1. Bean - 被容器管理的对象就叫做Bean<br/>
@@ -31,11 +31,13 @@ MutablePicoContainer pico = new DefaultPicoContainer();
 pico.addComponent(ImageFileEditor.class);
 pico.addComponent(ImageFileProcessor.class);
 </code></pre>
-最后，你可以从Container中取出实例化的组件。 <br/>
+最后，
+<span class="assertion" data-expect="equal" data-action="getComponent">你可以从Container中取出实例化的组件。</span>
+<br/>
 <pre><code class="language-java">
 ImageFileProcessor juicer = (ImageFileProcessor) pico.getComponent(ImageFileProcessor.class);
 </code></pre>
-
+</div>
 2. @Named <br/>
 @Named可以给Bean设置一个别名。
 <pre><code class="language-java">
@@ -53,5 +55,6 @@ public class PngFileEditor implements ImageFileEditor { ... }
 @Inject
 public ImageFileProcessor(@Named("PngFileEditor") ImageFileEditor imageFileEditor) { ... }
 </code></pre>
+
 </body>
 </html>

@@ -1,7 +1,11 @@
+package container;
+
 import fixture.Apple;
+import fixture.Fruit;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ContainerTest {
     @Test
@@ -21,11 +25,27 @@ class ContainerTest {
         // given
         Container container = new Container();
         container.addComponent(Apple.class);
+        container.lunch();
 
         // when
         Apple result = (Apple) container.getComponent(Apple.class);
 
         // then
         assertEquals("fruit", result.fruit());
+    }
+
+    @Test
+    void should_automatically_inject_dependency_when_get_a_component() {
+        // given
+        Container container = new Container();
+        container.addComponent(Apple.class);
+        container.addComponent(Fruit.class);
+        container.lunch();
+
+        // when
+        Fruit result = (Fruit) container.getComponent(Fruit.class);
+
+        // then
+        assertNotNull(result);
     }
 }
