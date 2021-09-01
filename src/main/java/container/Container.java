@@ -18,12 +18,11 @@ public class Container {
         componentsMap.put(className, clz);
     }
 
-    private String getComponentName(Class<?> clz) {
-        if (clz.isAnnotationPresent(Named.class)) {
-            Named namedAnnotation = clz.getAnnotation(Named.class);
-            return namedAnnotation.value();
+    public void lunch(){
+        Set<String> componentsName = componentsMap.keySet();
+        for (String name: componentsName) {
+            instantiate(componentsMap.get(name));
         }
-        return clz.getName();
     }
 
     public Collection<Class<?>> getComponents() {
@@ -35,6 +34,14 @@ public class Container {
         Object instance = instancesMap.get(className);
         if (instance == null) throw new BeanNoFoundException(className);
         return instance;
+    }
+
+    private String getComponentName(Class<?> clz) {
+        if (clz.isAnnotationPresent(Named.class)) {
+            Named namedAnnotation = clz.getAnnotation(Named.class);
+            return namedAnnotation.value();
+        }
+        return clz.getName();
     }
 
     private Object instantiate(Class<?> clz) {
@@ -90,12 +97,5 @@ public class Container {
                 return constructor;
         }
         return null;
-    }
-
-    public void lunch(){
-        Set<String> componentsName = componentsMap.keySet();
-        for (String name: componentsName) {
-            instantiate(componentsMap.get(name));
-        }
     }
 }
