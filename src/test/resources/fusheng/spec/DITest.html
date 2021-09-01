@@ -38,6 +38,7 @@ pico.addComponent(ImageFileProcessor.class);
 ImageFileProcessor juicer = (ImageFileProcessor) pico.getComponent(ImageFileProcessor.class);
 </code></pre>
 </div>
+<div class="example">
 2. @Named <br/>
 @Named可以给Bean设置一个别名。
 <pre><code class="language-java">
@@ -55,6 +56,8 @@ public class PngFileEditor implements ImageFileEditor { ... }
 @Inject
 public ImageFileProcessor(@Named("PngFileEditor") ImageFileEditor imageFileEditor) { ... }
 </code></pre>
-
+最后，在ImageFileProcessor中的ImageFileEditor会是
+<span class="assertion" data-expect="equal" data-action="getComponentAccordingToName">PngFileEditor</span>
+</div>
 </body>
 </html>

@@ -4,6 +4,7 @@ import exception.BeanInstantiationException;
 import exception.BeanNoFoundException;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -12,9 +13,17 @@ public class Container {
     Map<String, Class<?>> componentsMap = new HashMap<>();
     Map<String, Object> instancesMap = new HashMap<>();
 
-    public void addComponent(Class<?> componentClass) {
-        String className = componentClass.getName();
-        componentsMap.put(className, componentClass);
+    public void addComponent(Class<?> clz) {
+        String className = getComponentName(clz);
+        componentsMap.put(className, clz);
+    }
+
+    private String getComponentName(Class<?> clz) {
+        if (clz.isAnnotationPresent(Named.class)) {
+            Named namedAnnotation = clz.getAnnotation(Named.class);
+            return namedAnnotation.value();
+        }
+        return clz.getName();
     }
 
     public Collection<Class<?>> getComponents() {
@@ -28,8 +37,8 @@ public class Container {
         return instance;
     }
 
-    private Object instantiate(Class<?> componentClass) {
-        String className = componentClass.getName();
+    private Object instantiate(Class<?> clz) {
+        String className = getComponentName(clz);
         Object instance = instancesMap.getOrDefault(className, null);
         if (instance != null) {
             return instance;
@@ -39,13 +48,15 @@ public class Container {
             Constructor<?> injectConstructor = getInjectConstructor(cls.getDeclaredConstructors());
             // @inject and number > 1
             if (injectConstructor != null) {
-                Class<?>[] parameterClasses = injectConstructor.getParameterTypes();
-                ArrayList<Object> constructorParams = new ArrayList<Object>();
-                for (Class<?> paraClz: parameterClasses) {
-                    String paramClsName = paraClz.getName();
-                    Object paramIns = instancesMap.getOrDefault(paramClsName, null);
+                ArrayList<Object> constructorParams = new ArrayList<>();
+                Parameter[] parameters = injectConstructor.getParameters();
+                for (Parameter param: parameters) {
+                    String paramComponentName = getParamComponentName(param);
+                    Object paramIns = instancesMap.getOrDefault(paramComponentName, null);
                     if (paramIns == null){
-                        constructorParams.add(instantiate(paraClz));
+                        constructorParams.add(instantiate(param.getType()));
+                    } else {
+                        constructorParams.add(paramIns);
                     }
                 }
                 Object constructorParamsInstance = injectConstructor.newInstance(constructorParams.toArray());
@@ -61,6 +72,15 @@ public class Container {
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
             throw new BeanInstantiationException();
+        }
+    }
+
+    private String getParamComponentName(Parameter param) {
+        Class<?> paramClz = param.getType();
+        if (param.isAnnotationPresent(Named.class)) {
+            return param.getAnnotation(Named.class).value();
+        } else {
+            return paramClz.getName();
         }
     }
 

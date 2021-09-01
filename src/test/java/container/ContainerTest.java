@@ -1,13 +1,12 @@
 package container;
 
-import fixture.Apple;
-import fixture.Fruit;
+import fixture.*;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class ContainerTest {
+public class ContainerTest {
     @Test
     void should_add_component_to_container() {
         // given
@@ -47,5 +46,21 @@ class ContainerTest {
 
         // then
         assertNotNull(result);
+    }
+
+    @Test
+    public void should_get_bean_by_name_when_there_are_more_than_one_bean_implement_same_interface() {
+        // given
+        Container container = new Container();
+        container.addComponent(GifFileEditor.class);
+        container.addComponent(PngFileEditor.class);
+        container.addComponent(ImageFileProcessor.class);
+        container.lunch();
+
+        // when
+        ImageFileProcessor imageFileProcessor = (ImageFileProcessor) container.getComponent(ImageFileProcessor.class);
+
+        // then
+        assertEquals(imageFileProcessor.imageFileEditor.edit(), "PngFileEditor");
     }
 }
