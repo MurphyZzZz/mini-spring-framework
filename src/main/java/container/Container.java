@@ -5,8 +5,16 @@ import exception.BeanNoFoundException;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.lang.reflect.*;
-import java.util.*;
+import javax.inject.Qualifier;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Parameter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class Container {
 
@@ -37,11 +45,28 @@ public class Container {
     }
 
     private String getComponentName(Class<?> clz) {
+        // qualifier和named的优先级？
         if (clz.isAnnotationPresent(Named.class)) {
             Named namedAnnotation = clz.getAnnotation(Named.class);
             return namedAnnotation.value();
         }
+
+        String qualifierName = getQualifierComponentName(clz);
+        if (qualifierName != null) return qualifierName;
+
         return clz.getName();
+    }
+
+    private String getQualifierComponentName(Class<?> clz){
+        Annotation[] declaredAnnotations = clz.getDeclaredAnnotations();
+        for (Annotation annotation: declaredAnnotations) {
+            Class<?> annotationClz = annotation.annotationType();
+            // 以第一个实现qualifier的annotation为准
+            if (annotationClz.isAnnotationPresent(Qualifier.class)){
+                return annotationClz.getSimpleName();
+            }
+        }
+        return null;
     }
 
     private Object instantiate(Class<?> clz) {
@@ -85,10 +110,25 @@ public class Container {
     private String getParamComponentName(Parameter param) {
         Class<?> paramClz = param.getType();
         if (param.isAnnotationPresent(Named.class)) {
-            return param.getAnnotation(Named.class).value();
-        } else {
-            return paramClz.getName();
+            return param.getDeclaredAnnotation(Named.class).value();
         }
+
+        String qualifierName = getParamQualifierComponentName(param);
+        if (qualifierName != null) return qualifierName;
+
+        return paramClz.getName();
+    }
+
+    private String getParamQualifierComponentName(Parameter param){
+        Annotation[] declaredAnnotations = param.getDeclaredAnnotations();
+        for (Annotation annotation: declaredAnnotations) {
+            Class<?> annotationClz = annotation.annotationType();
+            // 以第一个实现qualifier的annotation为准
+            if (annotationClz.isAnnotationPresent(Qualifier.class)){
+                return annotationClz.getSimpleName();
+            }
+        }
+        return null;
     }
 
     private Constructor<?> getInjectConstructor(Constructor<?>[] constructors) {

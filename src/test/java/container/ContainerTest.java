@@ -1,6 +1,13 @@
 package container;
 
-import fixture.*;
+import fixture.Apple;
+import fixture.AsynchronousPaymentProcessor;
+import fixture.Fruit;
+import fixture.GifFileEditor;
+import fixture.ImageFileProcessor;
+import fixture.PngFileEditor;
+import fixture.Product;
+import fixture.SynchronousPaymentProcessor;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -62,5 +69,23 @@ public class ContainerTest {
 
         // then
         assertEquals(imageFileProcessor.imageFileEditor.edit(), "PngFileEditor");
+    }
+
+    @Test
+    void should_inject_synchronous_bean_given_inject_point_qualifier_is_annotation_Synchronous() {
+        // given
+        Container container = new Container();
+        container.addComponent(AsynchronousPaymentProcessor.class);
+        container.addComponent(SynchronousPaymentProcessor.class);
+        container.addComponent(Product.class);
+        container.lunch();
+
+        // when
+        Product product = (Product) container.getComponent(Product.class);
+
+        // then
+        SynchronousPaymentProcessor synchronousPaymentProcessor = new SynchronousPaymentProcessor();
+        assertEquals(product.paymentProcessor.pay(), synchronousPaymentProcessor.pay());
+
     }
 }

@@ -1,8 +1,10 @@
-package fixture;
+package diFixture;
 
 import com.thoughtworks.fusheng.integration.junit5.FuShengTest;
 import container.Container;
 import container.ContainerTest;
+import fixture.Apple;
+import fixture.Fruit;
 import lombok.val;
 
 @FuShengTest
