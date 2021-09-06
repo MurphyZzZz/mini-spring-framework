@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static resolvers.BeanNameResolver.resolveBeanName;
 import static checker.CircularDependencyChecker.circularDependencyCheck;
 
 public class Container {
@@ -49,26 +50,7 @@ public class Container {
     }
 
     private String getComponentName(Class<?> clz) {
-        // qualifier和named的优先级？
-        if (clz.isAnnotationPresent(Named.class))
-            return clz.getAnnotation(Named.class).value();
-
-        String qualifierName = getQualifierComponentName(clz);
-        if (qualifierName != null) return qualifierName;
-
-        return clz.getName();
-    }
-
-    private String getQualifierComponentName(Class<?> clz){
-        Annotation[] declaredAnnotations = clz.getDeclaredAnnotations();
-        for (Annotation annotation: declaredAnnotations) {
-            Class<?> annotationClz = annotation.annotationType();
-            // 以第一个实现qualifier的annotation为准
-            if (annotationClz.isAnnotationPresent(Qualifier.class)){
-                return annotationClz.getSimpleName();
-            }
-        }
-        return null;
+        return resolveBeanName(clz);
     }
 
     private Object instantiate(Class<?> clz) {
@@ -80,21 +62,8 @@ public class Container {
         try {
             Class<?> cls = componentsMap.get(className);
             Constructor<?> injectConstructor = getInjectConstructor(cls.getDeclaredConstructors());
-            // @inject and number > 1
             if (injectConstructor != null) {
-                ArrayList<Object> constructorParams = new ArrayList<>();
-                Parameter[] parameters = injectConstructor.getParameters();
-                for (Parameter param: parameters) {
-                    String paramComponentName = getParamComponentName(param);
-                    Object paramIns = instancesMap.getOrDefault(paramComponentName, null);
-                    if (paramIns == null){
-                        constructorParams.add(instantiate(param.getType()));
-                    } else {
-                        constructorParams.add(paramIns);
-                    }
-                }
-                Object constructorParamsInstance = injectConstructor.newInstance(constructorParams.toArray());
-                return instancesMap.put(className, constructorParamsInstance);
+                return instantiateConstructorClass(className, injectConstructor);
             } else {
                 Constructor<?> constructor = cls.getDeclaredConstructor();
                 Object newInstance = constructor.newInstance();
@@ -107,6 +76,22 @@ public class Container {
             e.printStackTrace();
             throw new BeanInstantiationException();
         }
+    }
+
+    private Object instantiateConstructorClass(String className, Constructor<?> injectConstructor) throws InstantiationException, IllegalAccessException, InvocationTargetException {
+        ArrayList<Object> constructorParams = new ArrayList<>();
+        Parameter[] parameters = injectConstructor.getParameters();
+        for (Parameter param: parameters) {
+            String paramComponentName = getParamComponentName(param);
+            Object paramIns = instancesMap.getOrDefault(paramComponentName, null);
+            if (paramIns == null){
+                constructorParams.add(instantiate(param.getType()));
+            } else {
+                constructorParams.add(paramIns);
+            }
+        }
+        Object constructorParamsInstance = injectConstructor.newInstance(constructorParams.toArray());
+        return instancesMap.put(className, constructorParamsInstance);
     }
 
     private String getParamComponentName(Parameter param) {
@@ -135,6 +120,7 @@ public class Container {
 
     private Constructor<?> getInjectConstructor(Constructor<?>[] constructors) {
         for (Constructor<?> constructor: constructors) {
+            // @inject and number > 1
             if (constructor.getParameterCount() >= 1 && constructor.isAnnotationPresent(Inject.class))
                 return constructor;
         }
