@@ -1,5 +1,6 @@
 package container;
 
+import exception.BeanHasCirCleDependency;
 import exception.BeanInstantiationException;
 import exception.BeanNoFoundException;
 
@@ -29,7 +30,9 @@ public class Container {
     public void lunch(){
         Set<String> componentsName = componentsMap.keySet();
         for (String name: componentsName) {
-            instantiate(componentsMap.get(name));
+            Class<?> clz = componentsMap.get(name);
+            circularDependencyCheck(clz);
+            instantiate(clz);
         }
     }
 
@@ -42,6 +45,25 @@ public class Container {
         Object instance = instancesMap.get(className);
         if (instance == null) throw new BeanNoFoundException(className);
         return instance;
+    }
+
+    private void circularDependencyCheck(Class<?> clz) {
+        Constructor<?> injectConstructor = getInjectConstructor(clz.getDeclaredConstructors());
+        if (injectConstructor != null) {
+            Parameter[] parameters = injectConstructor.getParameters();
+            for (Parameter param: parameters) {
+                Class<?> paramClz = param.getType();
+                Constructor<?> paramConstructor = getInjectConstructor(paramClz.getDeclaredConstructors());
+                if (paramConstructor != null) {
+                    Parameter[] paramConstructorParameters = paramConstructor.getParameters();
+                    for (Parameter parameter: paramConstructorParameters) {
+                        String dependentClassName = parameter.getType().getName();
+                        if (dependentClassName.equals(clz.getName()))
+                            throw new BeanHasCirCleDependency(clz.getSimpleName(), paramClz.getName());
+                    }
+                }
+            }
+        }
     }
 
     private String getComponentName(Class<?> clz) {

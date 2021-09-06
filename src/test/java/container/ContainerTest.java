@@ -1,7 +1,10 @@
 package container;
 
+import exception.BeanHasCirCleDependency;
 import fixture.Apple;
 import fixture.AsynchronousPaymentProcessor;
+import fixture.CircleDependencyA;
+import fixture.CircleDependencyB;
 import fixture.Fruit;
 import fixture.GifFileEditor;
 import fixture.ImageFileProcessor;
@@ -12,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ContainerTest {
     @Test
@@ -86,6 +90,14 @@ public class ContainerTest {
         // then
         SynchronousPaymentProcessor synchronousPaymentProcessor = new SynchronousPaymentProcessor();
         assertEquals(product.paymentProcessor.pay(), synchronousPaymentProcessor.pay());
+    }
 
+    @Test
+    void should_get_component_successfully_even_there_is_a_cycle_dependency() {
+        // given
+        Container container = new Container();
+        container.addComponent(CircleDependencyA.class);
+        container.addComponent(CircleDependencyB.class);
+        assertThrows(BeanHasCirCleDependency.class, container::lunch);
     }
 }
