@@ -1,6 +1,5 @@
 package container;
 
-import exception.BeanHasCirCleDependency;
 import exception.BeanInstantiationException;
 import exception.BeanNoFoundException;
 
@@ -16,6 +15,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import static checker.CircularDependencyChecker.circularDependencyCheck;
 
 public class Container {
 
@@ -47,31 +48,10 @@ public class Container {
         return instance;
     }
 
-    private void circularDependencyCheck(Class<?> clz) {
-        Constructor<?> injectConstructor = getInjectConstructor(clz.getDeclaredConstructors());
-        if (injectConstructor != null) {
-            Parameter[] parameters = injectConstructor.getParameters();
-            for (Parameter param: parameters) {
-                Class<?> paramClz = param.getType();
-                Constructor<?> paramConstructor = getInjectConstructor(paramClz.getDeclaredConstructors());
-                if (paramConstructor != null) {
-                    Parameter[] paramConstructorParameters = paramConstructor.getParameters();
-                    for (Parameter parameter: paramConstructorParameters) {
-                        String dependentClassName = parameter.getType().getName();
-                        if (dependentClassName.equals(clz.getName()))
-                            throw new BeanHasCirCleDependency(clz.getSimpleName(), paramClz.getName());
-                    }
-                }
-            }
-        }
-    }
-
     private String getComponentName(Class<?> clz) {
         // qualifier和named的优先级？
-        if (clz.isAnnotationPresent(Named.class)) {
-            Named namedAnnotation = clz.getAnnotation(Named.class);
-            return namedAnnotation.value();
-        }
+        if (clz.isAnnotationPresent(Named.class))
+            return clz.getAnnotation(Named.class).value();
 
         String qualifierName = getQualifierComponentName(clz);
         if (qualifierName != null) return qualifierName;
