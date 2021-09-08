@@ -20,7 +20,7 @@ public class CircularDependencyChecker {
                     for (Parameter parameter: paramConstructorParameters) {
                         String dependentClassName = parameter.getType().getName();
                         if (dependentClassName.equals(clz.getName()))
-                            throw new BeanHasCirCleDependency(clz.getSimpleName(), paramClz.getName());
+                            throw new BeanHasCirCleDependency(clz.getSimpleName(), paramClz.getSimpleName());
                     }
                 }
             }

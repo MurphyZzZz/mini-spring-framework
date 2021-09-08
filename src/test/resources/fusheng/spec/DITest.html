@@ -1,19 +1,32 @@
-<html xmlns="http://www.w3.org/1999/html">
+<html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 </head>
 <body>
 <div class="example">
-    Mini-Spring-Framework是一款轻量级依赖注入框架，能够自动创建、管理和销毁实例并限制其生命周期。<br/>
+    Mini-Spring-Framework是一款轻量级依赖注入框架，能够自动创建、管理和销毁实例。<br/>
     在介绍具体用法之前，有几个概念需要理解：<br/>
     1. Bean - 被容器管理的对象就叫做Bean<br/>
-    2. container.Container - ApplicationContext 接口代表一个container。 容器负责实例化、配置和组装称为 bean 的对象，以及管理它们的生命周期。<br/>
+    2. Container - 容器。 容器负责实例化、配置和组装称为 bean 的对象，以及管理它们的生命周期。<br/>
     <br/>
     使用说明：<br/>
 
     1. @Inject 构造函数注入<br/>
-    将@Inject作用于类的构造器上，Container会自动把构造这个类所需要的依赖自动注入进去，而无须我们显式地new出来。
-<pre><code class="language-java">
+    将@Inject作用于类的构造器上，Container会自动把构造这个类所需要的依赖自动注入进去，而无须我们显式地new出来。<br/>
+    不使用@Inject之前：
+    <pre><code class="hljs language-java">
+public class ImageFileProcessor {
+
+    private ImageFileEditor imageFileEditor;
+
+    @Inject
+    public ImageFileProcessor() {
+        this.imageFileEditor = new ImageFileEditor();
+    }
+}
+</code></pre>
+    而使用了此框架后，不需要显示的用new来给定一个实例了。因为框架会帮我们自动注入。
+    <pre><code class="language-java">
 public class ImageFileProcessor {
 
     private ImageFileEditor imageFileEditor;
@@ -40,7 +53,7 @@ ImageFileProcessor juicer = (ImageFileProcessor) pico.getComponent(ImageFileProc
 </div>
 <div class="example">
 2. @Named <br/>
-@Named可以给Bean设置一个别名。
+@Named可以给Bean设置一个别名。当多个类实现了同一个接口的时候，容器无法知道用户想要注入哪一个类，因此会产生歧义。但是，我们可以用@Named来告诉容器，哪一个类是我想要注入的。
 <pre><code class="language-java">
 @Named("GifFileEditor")
 public class GifFileEditor implements ImageFileEditor { ... }
@@ -51,13 +64,88 @@ public class JpgFileEditor implements ImageFileEditor { ... }
 @Named("PngFileEditor")
 public class PngFileEditor implements ImageFileEditor { ... }
 </code></pre>
-相应地，你的注入点会变成：
+相应地，你的注入点会加上@Named，以此来告诉容器，在实现了ImageFileEditor的类里，我想要注入PngFileEditor这个类：
 <pre><code class="language-java">
 @Inject
 public ImageFileProcessor(@Named("PngFileEditor") ImageFileEditor imageFileEditor) { ... }
 </code></pre>
 最后，在ImageFileProcessor中的ImageFileEditor会是
 <span class="assertion" data-expect="equal" data-action="getComponentAccordingToName">PngFileEditor</span>
+</div>
+<br/>
+<div class="example">
+3. @Qualifier <br/>
+@Qualifier也可以给Bean设置一个别名，从而告诉容器，此接口对应注入的实现类是哪一个。<br/>
+举例：
+我们有两个自定义的注解，分别是Synchronous和Asynchronous，且带有@Qualifier的注解。
+<pre><code class="language-java">
+@Qualifier
+@Retention(RUNTIME)
+@Target({METHOD, FIELD, PARAMETER, TYPE})
+public @interface Synchronous {
+}
+@Qualifier
+@Retention(RUNTIME)
+@Target({METHOD, FIELD, PARAMETER, TYPE})
+public @interface Asynchronous {
+}
+
+同时，我们将这两个注解应用于想要标记的类上。
+@Asynchronous
+public class AsynchronousPaymentProcessor implements PaymentProcessor{
+    @Override
+    public String pay() {
+        return "AsynchronousPaymentProcessor";
+    }
+}
+@Synchronous
+public class SynchronousPaymentProcessor implements PaymentProcessor{
+    @Override
+    public String pay() {
+        return "SynchronousPaymentProcessor";
+    }
+}
+最后，使用的时候，方式类似于@Named的，我们在接口参数的地方，告诉容器，我们想要注入的是哪一个实现类。
+public class Product {
+    public PaymentProcessor paymentProcessor;
+
+    @Inject
+    public Product(@Synchronous PaymentProcessor paymentProcessor){
+        this.paymentProcessor = paymentProcessor;
+    }
+}
+</code></pre>
+最后，我们在Product类中，对于参数PaymentProcessor，会得到一个
+    <span class="assertion" data-expect="equal" data-action="getComponentAccordingToQualifier">SynchronousPaymentProcessor</span>
+的实现类。
+</div>
+<div class="example">
+4. Circular Dependency 循环依赖
+当A需要注入B，B需要注入A的时候，会产生循环依赖。因为此时容器并不知道应该先实例化哪一个，所以，程序会抛出异常。<br/>
+举例：
+<pre><code class="language java">
+假设，类CircleDependencyA想要注入CircleDependencyB，同时CircleDependencyB想要注入CircleDependencyA。
+public class CircleDependencyA {
+    CircleDependencyB circleDependencyB;
+
+    @Inject
+    public CircleDependencyA(CircleDependencyB circleDependencyB) {
+        this.circleDependencyB = circleDependencyB;
+    }
+}
+public class CircleDependencyB {
+    CircleDependencyA circleDependencyA;
+
+    @Inject
+    public CircleDependencyB(CircleDependencyA circleDependencyA){
+        this.circleDependencyA = circleDependencyA;
+    }
+}
+当容器启动的时候，我们会得到一条错误信息：
+<span class="assertion" data-expect="equal" data-action="circularDependency">
+CircleDependencyA and CircleDependencyB has a cycle dependency.
+</span>
+</code></pre>
 </div>
 </body>
 </html>
