@@ -2,6 +2,7 @@ package container;
 
 import exception.BeanInstantiationException;
 import exception.BeanNoFoundException;
+import org.reflections.Reflections;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -21,13 +22,18 @@ public class Container {
 
     Map<String, Class<?>> componentsMap = new HashMap<>();
     Map<String, Object> instancesMap = new HashMap<>();
+    private final Reflections reflections = new Reflections("container");
 
-    public void addComponent(Class<?> clz) {
-        String className = getComponentName(clz);
-        componentsMap.put(className, clz);
+    private void addComponent() {
+        final Set<Class<?>> managedBeans = reflections.getTypesAnnotatedWith(MiniDi.class);
+        for (Class<?> clz: managedBeans) {
+            String className = getComponentName(clz);
+            componentsMap.put(className, clz);
+        }
     }
 
     public void lunch(){
+        this.addComponent();
         Set<String> componentsName = componentsMap.keySet();
         for (String name: componentsName) {
             Class<?> clz = componentsMap.get(name);
@@ -84,7 +90,7 @@ public class Container {
             String paramComponentName = getParamComponentName(param);
             Object paramIns = instancesMap.getOrDefault(paramComponentName, null);
             if (paramIns == null){
-                constructorParams.add(instantiate(param.getType()));
+                constructorParams.add(instantiate(componentsMap.get(paramComponentName)));
             } else {
                 constructorParams.add(paramIns);
             }

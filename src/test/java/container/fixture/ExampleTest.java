@@ -1,4 +1,4 @@
-package fixture;
+package container.fixture;
 
 import com.thoughtworks.fusheng.integration.junit5.FuShengTest;
 import org.junit.jupiter.api.Test;

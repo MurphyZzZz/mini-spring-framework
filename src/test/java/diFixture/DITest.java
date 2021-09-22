@@ -3,16 +3,10 @@ package diFixture;
 import com.thoughtworks.fusheng.integration.junit5.FuShengTest;
 import container.Container;
 import exception.BeanHasCirCleDependency;
-import fixture.Apple;
-import fixture.AsynchronousPaymentProcessor;
-import fixture.CircleDependencyA;
-import fixture.CircleDependencyB;
-import fixture.Fruit;
-import fixture.GifFileEditor;
-import fixture.ImageFileProcessor;
-import fixture.PngFileEditor;
-import fixture.Product;
-import fixture.SynchronousPaymentProcessor;
+import container.fixture.Fruit;
+import container.fixture.ImageFileProcessor;
+import container.fixture.Product;
+import container.fixture.SynchronousPaymentProcessor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -23,8 +17,6 @@ public class DITest {
     public String getComponent() {
         // given
         Container container = new Container();
-        container.addComponent(Apple.class);
-        container.addComponent(Fruit.class);
         container.lunch();
 
         // when
@@ -37,9 +29,6 @@ public class DITest {
     public String getComponentAccordingToName() {
         // given
         Container container = new Container();
-        container.addComponent(GifFileEditor.class);
-        container.addComponent(PngFileEditor.class);
-        container.addComponent(ImageFileProcessor.class);
         container.lunch();
 
         // when
@@ -53,9 +42,6 @@ public class DITest {
     public String getComponentAccordingToQualifier() {
         // given
         Container container = new Container();
-        container.addComponent(AsynchronousPaymentProcessor.class);
-        container.addComponent(SynchronousPaymentProcessor.class);
-        container.addComponent(Product.class);
         container.lunch();
 
         // when
@@ -70,8 +56,6 @@ public class DITest {
     public String circularDependency() {
         // given
         Container container = new Container();
-        container.addComponent(CircleDependencyA.class);
-        container.addComponent(CircleDependencyB.class);
         BeanHasCirCleDependency exception = assertThrows(BeanHasCirCleDependency.class, container::lunch);
         return exception.getMessage();
     }
