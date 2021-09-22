@@ -84,12 +84,11 @@ public class Container {
         Parameter[] parameters = injectConstructor.getParameters();
         for (Parameter param: parameters) {
             String paramBeanName = getParamBeanName(param);
-            Object paramIns = instancesMap.getOrDefault(paramBeanName, null);
-            if (paramIns == null){
-                constructorParams.add(instantiate(beanMap.get(paramBeanName)));
-            } else {
-                constructorParams.add(paramIns);
+            if (instancesMap.getOrDefault(paramBeanName, null) == null){
+                instantiate(beanMap.get(paramBeanName));
             }
+            Object paramIns = instancesMap.getOrDefault(paramBeanName, null);
+            constructorParams.add(paramIns);
         }
         return injectConstructor.newInstance(constructorParams.toArray());
     }
