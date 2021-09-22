@@ -8,7 +8,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -16,55 +15,52 @@ import java.util.Set;
 import static checker.CircularDependencyChecker.circularDependencyCheck;
 import static resolvers.BeanNameResolver.resolveBeanName;
 import static utils.DependencyInjectUtils.getInjectConstructor;
-import static utils.DependencyInjectUtils.getParamComponentName;
+import static utils.DependencyInjectUtils.getParamBeanName;
 
 public class Container {
 
-    Map<String, Class<?>> componentsMap = new HashMap<>();
+    final String packageName = "container";
+    Map<String, Class<?>> beanMap = new HashMap<>();
     Map<String, Object> instancesMap = new HashMap<>();
-    private final Reflections reflections = new Reflections("container");
-
-    private void addComponent() {
-        final Set<Class<?>> managedBeans = reflections.getTypesAnnotatedWith(MiniDi.class);
-        for (Class<?> clz: managedBeans) {
-            String className = getComponentName(clz);
-            componentsMap.put(className, clz);
-        }
-    }
+    private final Reflections reflections = new Reflections(packageName);
 
     public void lunch(){
-        this.addComponent();
-        Set<String> componentsName = componentsMap.keySet();
-        for (String name: componentsName) {
-            Class<?> clz = componentsMap.get(name);
+        this.addBean();
+        Set<String> beansName = beanMap.keySet();
+        for (String name: beansName) {
+            Class<?> clz = beanMap.get(name);
             circularDependencyCheck(clz);
             instantiate(clz);
         }
     }
 
-    public Collection<Class<?>> getComponents() {
-        return componentsMap.values();
-    }
-
-    public Object getComponent(Class<?> componentClass) {
-        String className = componentClass.getName();
+    public Object getBean(Class<?> beanClass) {
+        String className = beanClass.getName();
         Object instance = instancesMap.get(className);
         if (instance == null) throw new BeanNoFoundException(className);
         return instance;
     }
 
-    private String getComponentName(Class<?> clz) {
+    private void addBean() {
+        final Set<Class<?>> managedBeans = reflections.getTypesAnnotatedWith(MiniDi.class);
+        for (Class<?> clz: managedBeans) {
+            String className = getBeanName(clz);
+            beanMap.put(className, clz);
+        }
+    }
+
+    private String getBeanName(Class<?> clz) {
         return resolveBeanName(clz);
     }
 
     private Object instantiate(Class<?> clz) {
-        String className = getComponentName(clz);
+        String className = getBeanName(clz);
         Object instance = instancesMap.getOrDefault(className, null);
         if (instance != null) {
             return instance;
         }
         try {
-            Class<?> cls = componentsMap.get(className);
+            Class<?> cls = beanMap.get(className);
             Constructor<?> injectConstructor = getInjectConstructor(cls.getDeclaredConstructors());
             if (injectConstructor != null) {
                 Object constructorParamsInstance = instantiateConstructorClass(injectConstructor);
@@ -87,10 +83,10 @@ public class Container {
         ArrayList<Object> constructorParams = new ArrayList<>();
         Parameter[] parameters = injectConstructor.getParameters();
         for (Parameter param: parameters) {
-            String paramComponentName = getParamComponentName(param);
-            Object paramIns = instancesMap.getOrDefault(paramComponentName, null);
+            String paramBeanName = getParamBeanName(param);
+            Object paramIns = instancesMap.getOrDefault(paramBeanName, null);
             if (paramIns == null){
-                constructorParams.add(instantiate(componentsMap.get(paramComponentName)));
+                constructorParams.add(instantiate(beanMap.get(paramBeanName)));
             } else {
                 constructorParams.add(paramIns);
             }

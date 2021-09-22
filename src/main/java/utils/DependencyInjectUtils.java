@@ -5,9 +5,7 @@ import javax.inject.Named;
 import javax.inject.Qualifier;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
-import java.util.ArrayList;
 
 public class DependencyInjectUtils {
     static public Constructor<?> getInjectConstructor(Constructor<?>[] constructors) {
@@ -18,19 +16,19 @@ public class DependencyInjectUtils {
         return null;
     }
 
-    static public String getParamComponentName(Parameter param) {
+    static public String getParamBeanName(Parameter param) {
         Class<?> paramClz = param.getType();
         if (param.isAnnotationPresent(Named.class)) {
             return param.getDeclaredAnnotation(Named.class).value();
         }
 
-        String qualifierName = getParamQualifierComponentName(param);
+        String qualifierName = getParamQualifierBeanName(param);
         if (qualifierName != null) return qualifierName;
 
         return paramClz.getName();
     }
 
-    static public String getParamQualifierComponentName(Parameter param){
+    static public String getParamQualifierBeanName(Parameter param){
         Annotation[] declaredAnnotations = param.getDeclaredAnnotations();
         for (Annotation annotation: declaredAnnotations) {
             Class<?> annotationClz = annotation.annotationType();

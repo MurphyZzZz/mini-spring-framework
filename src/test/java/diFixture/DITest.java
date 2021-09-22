@@ -20,7 +20,7 @@ public class DITest {
         container.lunch();
 
         // when
-        Fruit result = (Fruit) container.getComponent(Fruit.class);
+        Fruit result = (Fruit) container.getBean(Fruit.class);
 
         // then
         return "你可以从Container中取出实例化的组件。";
@@ -32,7 +32,7 @@ public class DITest {
         container.lunch();
 
         // when
-        ImageFileProcessor imageFileProcessor = (ImageFileProcessor) container.getComponent(ImageFileProcessor.class);
+        ImageFileProcessor imageFileProcessor = (ImageFileProcessor) container.getBean(ImageFileProcessor.class);
 
         // then
         assertEquals(imageFileProcessor.imageFileEditor.edit(), "PngFileEditor");
@@ -45,7 +45,7 @@ public class DITest {
         container.lunch();
 
         // when
-        Product product = (Product) container.getComponent(Product.class);
+        Product product = (Product) container.getBean(Product.class);
 
         // then
         SynchronousPaymentProcessor synchronousPaymentProcessor = new SynchronousPaymentProcessor();
