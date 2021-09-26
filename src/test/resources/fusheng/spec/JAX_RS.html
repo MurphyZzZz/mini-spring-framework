@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        code {
+            color: crimson;
+            padding: 2px;
+            font-size: 105%;
+        }
+    </style>
+    <title>JAX-RS</title>
+</head>
+<body>
+<p>JAX-RS is an annotation-driven Java API that aims to make development of Web services built according to the Representational State Transfer (REST) architectural style in Java</p>
+<p>A JAX-RS application consists of:<br />
+    <strong>Application subclass:</strong> An optional Application subclass that defines the other classes that make up the application<br />
+    <strong>Root resource classes</strong>: One or more root resource classes that define entry points into the URI space used by the application<br />
+    <strong>Providers</strong>: Zero or more providers that supply extended functionality to the JAX-RS runtime.</p>
+
+<p><br />
+    1. <strong>@Application</strong><br />
+    The ApplicationPath annotation specifies the base URI path segment to which all root resource class URIs are relative. By default, all root resource classes and providers packaged with the Application subclass are included in the application.</p>
+
+<pre>
+<code>@ApplicationPath("acme")
+public class AcmeApplication extends Application {
+}</code></pre>
+
+<p>2. <strong>@Path</strong></p>
+
+<p>Root resource classes provide entry points into the URI space used by the application. Root resource classes are plain old Java objects (POJOs) that are annotated with&nbsp;<code>@Path</code>. Here is an example root resource class:</p>
+
+<pre>
+<code>@Path("widgets")
+public class WidgetsResource {
+@GET
+public WidgetsRepresentation getWidgetList() {
+...
+}
+}</code></pre>
+
+<p>In the above, the root resource class is published at the relative URI&nbsp;<code>widgets</code>. If this class were part of the&nbsp;<code>AcmeApplication</code>&nbsp;shown earlier, then its URI path would be&nbsp;<code>/acme/widgets</code>.</p>
+
+<p>To expose a single widget as a resource, you can add a sub-resource method to the resource class as follows:</p>
+
+<p>In the above, HTTP GET requests for&nbsp;<code>/acme/widgets/{id}</code>&nbsp;will be dispatched to the&nbsp;<code>getWidget</code>&nbsp;method. The&nbsp;<code>{id}</code>&nbsp;indicates that the path is a URI template that will match any URI with the prefix&nbsp;<code>/acme/widgets/</code>&nbsp;and a single following path segment, e.g.,&nbsp;<code>/acme/widgets/foo</code>.</p>
+
+<p>3. <strong>@GET/@POST/@PUT/@DELETE</strong></p>
+
+<p>In preceding exmaple, the&nbsp;<code>@GET</code>&nbsp;annotation on the&nbsp;<code>getWidgetList</code>&nbsp;method indicates that the method is a resource method that you want to be called when an HTTP GET request is dispatched for that URI. Additional annotations are provided to support the other common HTTP methods. The set is extensible for other less common methods. The value returned from the method is converted into a response body by an entity provider. Returning a non-void Java type results in a 200 OK response, while a void method results in a 204 No Content response. As you will see shortly, the status returned in a response can be customized.</p>
+
+</body>
+</html>
