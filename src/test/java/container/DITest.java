@@ -1,4 +1,4 @@
-package diFixture;
+package container;
 
 import com.thoughtworks.fusheng.integration.junit5.FuShengTest;
 import container.Container;
@@ -14,13 +14,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @FuShengTest
 public class DITest {
 
+    private final String packageName = this.getClass().getPackageName();
+
     public String getComponent() {
         // given
-        Container container = new Container();
+        Container container = new Container(packageName);
         container.lunch();
 
         // when
-        Fruit result = (Fruit) container.getBean(Fruit.class);
+        Fruit result = (Fruit) container.getBeanInstance(Fruit.class);
 
         // then
         return "你可以从Container中取出实例化的组件。";
@@ -28,11 +30,11 @@ public class DITest {
 
     public String getComponentAccordingToName() {
         // given
-        Container container = new Container();
+        Container container = new Container(packageName);
         container.lunch();
 
         // when
-        ImageFileProcessor imageFileProcessor = (ImageFileProcessor) container.getBean(ImageFileProcessor.class);
+        ImageFileProcessor imageFileProcessor = (ImageFileProcessor) container.getBeanInstance(ImageFileProcessor.class);
 
         // then
         assertEquals(imageFileProcessor.imageFileEditor.edit(), "PngFileEditor");
@@ -41,11 +43,11 @@ public class DITest {
 
     public String getComponentAccordingToQualifier() {
         // given
-        Container container = new Container();
+        Container container = new Container(packageName);
         container.lunch();
 
         // when
-        Product product = (Product) container.getBean(Product.class);
+        Product product = (Product) container.getBeanInstance(Product.class);
 
         // then
         SynchronousPaymentProcessor synchronousPaymentProcessor = new SynchronousPaymentProcessor();
@@ -55,7 +57,7 @@ public class DITest {
 
     public String circularDependency() {
         // given
-        Container container = new Container();
+        Container container = new Container(packageName);
         BeanHasCirCleDependency exception = assertThrows(BeanHasCirCleDependency.class, container::lunch);
         return exception.getMessage();
     }

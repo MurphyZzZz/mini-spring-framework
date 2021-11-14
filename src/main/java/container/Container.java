@@ -8,6 +8,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -19,13 +20,25 @@ import static utils.DependencyInjectUtils.getParamBeanName;
 
 public class Container {
 
-    final String packageName = "container";
-    Map<String, Class<?>> beanMap = new HashMap<>();
-    Map<String, Object> instancesMap = new HashMap<>();
-    private final Reflections reflections = new Reflections(packageName);
+    String packageName;
+    Map<String, Class<?>> beanMap;
+    Map<String, Object> instancesMap;
+    private final Reflections reflections;
+
+    public Container(String packageName) {
+        this.packageName = packageName;
+        beanMap = new HashMap<>();
+        instancesMap = new HashMap<>();
+        reflections = new Reflections(packageName);
+    }
 
     public void lunch(){
-        this.addBean();
+        this.scanBeans();
+        this.instantiateBeans();
+        instancesMap.put(this.getClass().getSimpleName(), this);
+    }
+
+    private void instantiateBeans() {
         Set<String> beansName = beanMap.keySet();
         for (String name: beansName) {
             Class<?> clz = beanMap.get(name);
@@ -34,14 +47,18 @@ public class Container {
         }
     }
 
-    public Object getBean(Class<?> beanClass) {
+    public Collection<Class<?>> getAllBeans() {
+        return beanMap.values();
+    }
+
+    public Object getBeanInstance(Class<?> beanClass) {
         String className = beanClass.getName();
         Object instance = instancesMap.get(className);
         if (instance == null) throw new BeanNoFoundException(className);
         return instance;
     }
 
-    private void addBean() {
+    private void scanBeans() {
         final Set<Class<?>> managedBeans = reflections.getTypesAnnotatedWith(MiniDi.class);
         for (Class<?> clz: managedBeans) {
             String className = getBeanName(clz);
