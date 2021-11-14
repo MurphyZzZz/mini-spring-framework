@@ -12,7 +12,7 @@ class ContainerSupplierTest {
     void should_return_container_when_get_container_given_an_application_class() {
         ContainerSupplier containerSupplier = new ContainerSupplier(MyApplication.class);
         containerSupplier.bootStrap();
-        Container container = containerSupplier.container;
+        Container container = containerSupplier.getContainer();
         MySubComponent subComponent = (MySubComponent) container.getBeanInstance(MySubComponent.class);
 
         assertEquals("MySubComponent", subComponent.getMyClassName());
