@@ -33,9 +33,9 @@ public class Container {
     }
 
     public void lunch(){
+        instancesMap.put(this.getClass().getName(), this);
         this.scanBeans();
         this.instantiateBeans();
-        instancesMap.put(this.getClass().getSimpleName(), this);
     }
 
     private void instantiateBeans() {
