@@ -11,7 +11,7 @@
 </head>
 <body>
 <div class="example">
-    Mini-Spring-Framework是一款轻量级依赖注入框架，能够自动创建、管理和销毁实例。<br/>
+    Mini-Di是一款轻量级依赖注入框架，能够自动创建、管理和销毁实例。<br/>
     在介绍具体用法之前，有几个概念需要理解：<br/>
     1. Bean - 被容器管理的对象就叫做Bean<br/>
     2. Container - 容器。 容器负责实例化、配置和组装称为 bean 的对象，以及管理它们的生命周期。<br/>
@@ -44,7 +44,7 @@ public class ImageFileProcessor {
     }
 }
 </code></pre>
-    在这种情况下，@Inject 指示 container.Container 在构造函数中注入 ImageFileEditor 实现。<br/>
+    在这种情况下，@Inject 指示 minidi.container.Container 在构造函数中注入 ImageFileEditor 实现。<br/>
     相应地，你需要把注入和被注入的Bean都放到Container中。 <br/>
     <pre><code class="language-java">
 MutablePicoContainer pico = new DefaultPicoContainer();
