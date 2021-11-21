@@ -1,17 +1,16 @@
 package minidi.container;
 
-import minidi.exception.BeanHasCirCleDependency;
 import minidi.container.fixture.Apple;
 import minidi.container.fixture.Fruit;
 import minidi.container.fixture.ImageFileProcessor;
+import minidi.container.fixture.ManuallyBean;
 import minidi.container.fixture.Product;
 import minidi.container.fixture.SynchronousPaymentProcessor;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ContainerTest {
 
@@ -70,10 +69,23 @@ public class ContainerTest {
         assertEquals(product.paymentProcessor.pay(), synchronousPaymentProcessor.pay());
     }
 
-    @Ignore
+    @Test
     void should_get_component_successfully_even_there_is_a_cycle_dependency() {
         // given
         Container container = new Container(packageName);
-        assertThrows(BeanHasCirCleDependency.class, container::lunch);
+        assertDoesNotThrow(container::lunch);
+    }
+
+    @Test
+    void should_be_able_to_manually_register_bean() {
+        // given
+        Container container = new Container(packageName);
+
+        // when
+        container.registerBean(ManuallyBean.class);
+        container.lunch();
+
+        // then
+        ManuallyBean manuallyBean = (ManuallyBean) container.getBeanInstance(ManuallyBean.class);
     }
 }

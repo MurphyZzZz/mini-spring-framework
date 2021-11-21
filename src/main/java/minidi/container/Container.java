@@ -33,18 +33,23 @@ public class Container {
     }
 
     public void lunch(){
-        instancesMap.put(this.getClass().getName(), this);
+        this.registerContainerSelf();
         this.scanBeans();
         this.instantiateBeans();
     }
 
+    private void registerContainerSelf() {
+        instancesMap.put(this.getClass().getName(), this);
+    }
+
     private void instantiateBeans() {
-        Set<String> beansName = beanMap.keySet();
-        for (String name: beansName) {
-            Class<?> clz = beanMap.get(name);
-            circularDependencyCheck(clz);
-            instantiate(clz);
-        }
+        beanMap.keySet().forEach(this::instantiateBeanFromBeanMap);
+    }
+
+    private void instantiateBeanFromBeanMap(String name) {
+        Class<?> clz = beanMap.get(name);
+        circularDependencyCheck(clz);
+        instantiate(clz);
     }
 
     public Collection<Class<?>> getAllBeans() {
@@ -59,11 +64,12 @@ public class Container {
     }
 
     private void scanBeans() {
-        final Set<Class<?>> managedBeans = reflections.getTypesAnnotatedWith(MiniDi.class);
-        for (Class<?> clz: managedBeans) {
-            String className = getBeanName(clz);
-            beanMap.put(className, clz);
-        }
+        reflections.getTypesAnnotatedWith(MiniDi.class).forEach(this::registerBeanIntoBeanMap);
+    }
+
+    private void registerBeanIntoBeanMap(Class<?> clz) {
+        String className = getBeanName(clz);
+        beanMap.put(className, clz);
     }
 
     private String getBeanName(Class<?> clz) {
@@ -108,5 +114,9 @@ public class Container {
             constructorParams.add(paramIns);
         }
         return injectConstructor.newInstance(constructorParams.toArray());
+    }
+
+    public void registerBean(Class<?> beanClz) {
+        registerBeanIntoBeanMap(beanClz);
     }
 }
